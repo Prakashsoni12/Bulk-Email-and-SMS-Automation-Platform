@@ -52,6 +52,14 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'bulkInformer.urls'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.Emailbackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'djangoeexample@gmail.com'
+EMAIL_HOST_PASSWORD = 'wxbv xwka dmdm qkuc'
+DEFAULT_FROM_EMAIL = 'djangoeexample@gmail.com'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

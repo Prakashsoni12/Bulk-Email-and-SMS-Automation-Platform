@@ -1,98 +1,57 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render,HttpResponse,redirect
+from django.core.mail import send_mail,send_mass_mail
 import re
-import csv
-import pandas as pd
-from PyPDF2 import PdfReader
-import pdfplumber
-
-
+from .fileprocess import read_csv_file,read_excel_file
 # Create your views here.
 
 
 def home(request):
     return render(request,"index.html")
 
- # Function to extract emails from text content
-def extract_emails(text):
-      # Regular expression to find email addresses
-    email_regex = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-    return re.findall(email_regex, text)
 
 
- # Read emails from .txt file
-def read_txt_file(file_path):
-    emails = []
-    with open(file_path, 'r') as file:
-        content = file.read()
-        emails = extract_emails(content)
-        return emails
+  # Function to process multiple files
+def extract_emails_from_files(file):
+    emails = set()
+    # Check the file type and process accordingly
+    if file.name.endswith('.txt'):
+        for line in file:
+            emails.update(re.findall(r'[\w\.-]+@[\w\.-]+', line.decode()))
+            
+    elif file.name.endswith('.pdf'):
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(file)
+            for page in reader.pages:
+                text = page.extract_text()
+                emails.update(re.findall(r'[\w\.-]+@[\w\.-]+', text))
+        except ImportError as e:
+            return str(e)  # PDF handling requires PyPDF2
+        
+    elif file.name.endswith('.xlsx'):
+       xlx =  read_excel_file(file)
+       emails.update(xlx)
 
-        # Read emails from .csv file
-def read_csv_file(file_path):
-    emails = []
-    with open(file_path, 'r') as csv_file:
-        reader = csv.reader(csv_file)
-        for row in reader:
-                row_text = ' '.join(row)  # Combine all columns into a single string
-                emails.extend(extract_emails(row_text))
-        return emails
+    elif file.name.endswith('.csv'):
+        csvfile = read_csv_file(file)
+        emails.update(csvfile)
+    else:
+        return "No file found"
+    return list(emails)
 
-        # Read emails from .xlsx (Excel) file
-def read_excel_file(file_path):
-    emails = []
-    df = pd.read_excel(file_path)
-    for col in df.columns:
-        df[col] = df[col].astype(str)  # Convert all data to string to handle numeric data
-        emails.extend(extract_emails(' '.join(df[col].values)))
-    return emails
-
-        # Read emails from .pdf file using PyPDF2
-def read_pdf_file(file_path):
-    emails = []
-    reader = PdfReader(file_path)
-    for page in reader.pages:
-        text = page.extract_text()
-        emails.extend(extract_emails(text))
-    return emails
-
-        # Alternative: Read emails from .pdf file using pdfplumber (more accurate for some PDFs)
-def read_pdf_file_pdfplumber(file_path):
-    emails = []
-    with pdfplumber.open(file_path) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            emails.extend(extract_emails(text))
-    return emails
-
-
-def recevie_mail(request):
-  
+#this function will display output on webpage
+def file_upload_view(request):
     if request.method == "POST":
-        uploaded_file = request.FILES.get("file")
-       
-        # Function to process multiple files
-        def extract_emails_from_files(file_paths):
-            all_emails = set()  # Use a set to avoid duplicate emails
-            for file_path in file_paths:
-                if file_path.endswith('.txt'):
-                    all_emails.update(read_txt_file(file_path))
-                elif file_path.endswith('.csv'):
-                    all_emails.update(read_csv_file(file_path))
-                elif file_path.endswith('.xlsx'):
-                    all_emails.update(read_excel_file(file_path))
-                elif file_path.endswith('.pdf'):
-                    all_emails.update(read_pdf_file_pdfplumber(file_path))  # Using pdfplumber here
-            return all_emails
-
+        file = request.FILES['file']
             
-        emails = extract_emails_from_files(uploaded_file)
-            
-        if emails:
-            print("Extracted emails:")
-            for email in emails:
-                print(email)
-            else:
-                print("No emails found.")
+        emails = extract_emails_from_files(file)
+        return render(request,"index.html",{'emails':emails})
 
+    return render(request,"index.html")
 
-    return render
+def send_emails(request):
+    if request.method == 'POST':
+        emails = request.POST.getlist('emails')
+        
+
+    return 
