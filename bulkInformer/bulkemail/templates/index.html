@@ -7,26 +7,39 @@
 </head>
 <body>
     <h1 style="text-align: center;">Welcome in bulky</h1>
-
-    <form action="" method="post">
-    
-        <label for="email">Email From:</label>
-        <input type="email" name="email" id="">
-        <label for="email">Email To:</label>
-        <input type="email" name="email" id="">
-    </form>
-
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
     <form action="/upload" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <!--user email  -->
+        <label for="email">Email From:</label>
+        <input type="email" name="emailfrom" id="">
+        <!--whom to send email  -->
+        <label for="email">Email To:</label>
+        <input type="email" name="emailto" id="">
         <label for="email-to-many">To Many</label>
+
         <label for="fileInput">Choose file:</label>
-        <input type="file" id="fileInput" name="file" required>
+        <input type="file" id="fileInput" name="file">
+
+        <label for="subject">Enter subject</label>
+        <input type="text" name="subject">
+        <label for="message">Message</label>
+        <textarea name="message" id="" cols="30" rows="10" name="message"></textarea>
         <br><br>
         <input type="submit" value="Upload">
+
     </form>
 <br>
 <label for="preview">Email preview</label>
-    <div style="height: 500px; width: 300px; border: 1px solid black;">
+    <div style="height: 500px; width: 300px; border: 1px solid black; margin-right: 10px;">
       {% if emails %}
        <ul>
         {% for email in emails %}
@@ -40,16 +53,13 @@
 
     <!-- sending mails to fetched emails -->
     <div>
-        <form action="{% url 'send_email' %}" method="post">
+        <form action="{% url 'send_emails' %}" method="post">
             {% csrf_token %}
-            <ul>
+         
                 {% for email in emails %}
-                  <li>
-                    {{ email }} <input type="hidden" name="emails" value="{{ email }}">
-                  </li>
-
+                    <input type="hidden" name="emails" value="{{ email }}">
                 {% endfor %}
-            </ul>
+          
             <button type="submit">send emails</button>
         </form>
     </div>

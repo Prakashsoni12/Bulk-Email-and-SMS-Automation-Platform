@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bulkemail',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -52,13 +54,19 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'bulkInformer.urls'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.Emailbackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST',default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT',default=587, cast=int)
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'djangoeexample@gmail.com'
-EMAIL_HOST_PASSWORD = 'wxbv xwka dmdm qkuc'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER') 
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'djangoeexample@gmail.com'
+
+
+#CELERY MODULE CONFIGURATION
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'django-db'
+
 
 TEMPLATES = [
     {
